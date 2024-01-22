@@ -1,0 +1,14 @@
+#!/bin/bash
+mkdir -p backups
+for file in $(ls); do
+	# skip any directories
+	if [ -f $file ]; then
+		# check to ensure that a backup doesn't already exist
+		if [ -f backups/${file}.backup ]; then
+			echo "$file is already backed up."
+		else
+			echo "Backing up $file to backups/${file}.backup."
+			cp "$file" "backups/${file}.backup"
+		fi
+	fi
+done
