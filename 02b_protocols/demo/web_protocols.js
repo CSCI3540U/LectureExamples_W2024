@@ -53,6 +53,8 @@ app.get('/home', (request, response) => {
 });
 
 app.post('/login', (request, response) => {
+    if (request.body.email === 'admin@abc.com' &&
+            request.body.password === '12345') {
 	// get ready for the next session
 	nextSessionId++;
 
@@ -67,7 +69,11 @@ app.post('/login', (request, response) => {
 	});
 
 	// go to the main page
-	response.redirect('/home');
+	//response.redirect('/home');
+	response.sendFile(__dirname + '/www/admin/secret.txt');
+    } else {
+	response.status(401).send('Login incorrect');
+    }
 });
 
 app.get('/logout', (request, response) => {
