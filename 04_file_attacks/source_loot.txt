@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const port = 9000;
 const fs = require('fs');
-const axios = require('axios');
 
 app.use(express.static('www'));
 
@@ -17,7 +16,7 @@ app.get('/lfi', (request, response) => {
    response.sendFile(__dirname + '/' + filename);// + '.php');
 });
 
-const base_dir = '/home/kali/LectureExamples_W2024/04_file_attacks/www';
+const base_dir = '/home/kali/LectureExamples_W2024/04_file_attacks';
 app.get('/dir_traversal', (request, response) => {
    let filename = request.query['page'];
    let path = __dirname + '/' + filename;
@@ -39,24 +38,6 @@ app.get('/dir_traversal', (request, response) => {
             console.error(`Invalid path: ${resolved_path}`);
          }
       }
-   });
-});
-
-app.get('/rfi', async (request, response) => {
-   let url = request.query['url'];
-   try {
-      let pageResponse = await axios.get(url);
-      response.send(pageResponse.data);
-   } catch (error) {
-      response.status(500).send(`Error: ${error.message}`);
-   }
-});
-
-app.post('/file_upload', (request, response) => {
-   const formidable = require('formidable');
-   let form = new formidable.IncomingForm();
-   form.parse(request, (error, fields, files) => {
-      // to be continued
    });
 });
 
