@@ -2,7 +2,9 @@ const express = require('express');
 const app = express();
 const port = 9000;
 const fs = require('fs');
+const path = require('path');
 const axios = require('axios');
+const { exec } = require("child_process");
 
 app.use(express.static('www'));
 
@@ -56,19 +58,21 @@ app.post('/file_upload', (request, response) => {
    const formidable = require('formidable');
    let form = new formidable.IncomingForm();
    form.parse(request, (error, fields, files) => {
-      let file = files.myFile[0];
+      let file = files.uploaded_image[0];
       let temp_file_path = file.filepath;
-      let desired_file_path = path.join(__dirname, file.originalfilename);
+      let original_filename = file.originalFilename;
+      let desired_file_path = path.join(__dirname, original_filename);
+      console.log(`new filename: ${desired_file_path}`);
       if (desired_file_path.endsWith('.jpg') || desired_file_path.endsWith('.jpeg')) {
          exec(`file ${temp_file_path}`, (error, output) => {
             if (error) {
-               console.error('Error checking file type: ' + error);
+               response.send('Error checking file type: ' + error);
             }
 
             if (output.includes('JPEG')) {
                fs.copyFile(temp_file_path, desired_file_path, fs.constants.COPYFILE_EXCL, (error) => {
                   if (error) {
-                     console.error('Error copying file: ' + error);
+                     response.send('Error copying file: ' + error);
                   } else {
                      response.write(`File uploaded to ${temp_file_path}`);
                      response.write(`File copied to ${desired_file_path}`);
@@ -76,9 +80,11 @@ app.post('/file_upload', (request, response) => {
                   }
                });
             } else {
-               console.error('Invalid file contents');
+               response.send('Invalid file contents');
             }
          });
+      } else {
+          response.send('Invalid file extension');
       }
    });
 });
