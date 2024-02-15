@@ -18,14 +18,14 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');
 
 // login/session related
-let nextSessionId = 2;
+// let nextSessionId = 2;
 
-let sessionData = {
-   '1': {
-      'email': 'admin@abc.com',
-      'role': 'administrator',
-   },
-};
+// let sessionData = {
+//    '1': {
+//       'email': 'admin@abc.com',
+//       'role': 'administrator',
+//    },
+// };
 
 let loginData = {
    'admin@abc.com': 'v05f!j_R',
@@ -41,11 +41,18 @@ function checkPassword(email, password) {
    return loginData[email] === password;
 }
 
+function sleep(duration) {
+   return new Promise(resolve => setTimeout(resolve, duration));
+}
+
 app.get('/home', (request, response) => {
-   console.log('Cookies: ' + request.cookies);
-   let sessionId = request.cookies['session_id'];
-   let email = sessionData[sessionId]['email'];
-   let role = sessionData[sessionId]['role'];
+   // console.log('Cookies: ' + request.cookies);
+   // let sessionId = request.cookies['session_id'];
+   // let email = sessionData[sessionId]['email'];
+   // let role = sessionData[sessionId]['role'];
+   let email = request.session.email;
+   let role = request.session.role;
+   
    if (email) {
       response.send(`Welcome, ${email}! Role: ${role} <a href="/logout">Logout</a>`);
    } else {
@@ -64,36 +71,56 @@ app.post('/processLogin', (request, response) => {
    let email = request.body.email;
    let password = request.body.password;
 
+  sleep(500).then(() => {
    if (userExists(email)) {
       if (checkPassword(email, password)) {
          // login success
-         response.cookie('session_id', `${nextSessionId}`);
-         sessionData[nextSessionId] = {
-            email: email,
-            role: 'user',
-         };
-         nextSessionId++;
+         // response.cookie('session_id', `${nextSessionId}`);
+         // sessionData[nextSessionId] = {
+         //    email: email,
+         //    role: 'user',
+         // };
+         // nextSessionId++;
+         request.session['email'] = email;
+         request.session.role = 'user';
 
          response.redirect('/home');
       } else {
          // password does not match
          response.render('login', {
             title: 'Login Page',
-            errorMessage: 'Password does not match',
+            errorMessage: 'Login incorrect',
          });
       }
    } else {
       // no such email
       response.render('login', {
          title: 'Login Page',
-         errorMessage: 'E-Mail does not exist',
+         errorMessage: 'Login incorrect',
       });
    }
+  });
 });
 
 app.get('/logout', (request, response) => {
    let sessionId = request.cookies['session_id'];
    delete sessionData[sessionId];
+});
+
+app.get('/profile/:email', (request, response) => {
+   let session_id = request.cookies['session_id'];
+   let email = sessionData[session_id]['email'];
+   let provided_email = request.params.email;
+   if (provided_email === email) {
+      response.send(`Ciao ${email}!  Your password is ${loginData[email]}`);
+   } else {
+      response.status(404).send('Invalid E-Mail address');
+   }
+});
+
+app.get('/order_status', (request, response) => {
+   let orderId = request.query.orderId;
+   response.send(`Viewing order ${orderId}`);
 });
 
 app.listen(port, () => {
