@@ -71,8 +71,9 @@ app.get('/login', function(request, response) {
 
     console.log(`QUERY:  select email from Login where email = '${email}' and password = '${password}'`);
 
+    // db.all(`select email from Login where email = ? and password = ?`, [email, password], (error, rows) => {
     db.all(`select email from Login where email = '${email}' and password = '${password}'`, (error, rows) => {
-        if (error || rows.length == 0) {
+            if (error || rows.length == 0) {
             console.log(`FAILED: Result of query: ${rows}, error: ${error}`);
 
             // invalid login
